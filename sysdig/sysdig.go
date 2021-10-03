@@ -257,17 +257,21 @@ func (c *Client) bareDo(ctx context.Context, req *http.Request) (*http.Response,
 		}
 	}
 	if c.debug {
-		var data []byte
-		if req.Body != nil {
-			var rerr error
-			data, rerr = ioutil.ReadAll(req.Body)
-			if rerr != nil {
-				c.logger.Printf("failed to read request body for debugging: %v", rerr)
-			} else {
-				req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		if req != nil {
+			var data []byte
+			if req.Body != nil {
+				var rerr error
+				data, rerr = ioutil.ReadAll(req.Body)
+				if rerr != nil {
+					c.logger.Printf("failed to read request body for debugging: %v", rerr)
+				} else {
+					req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+				}
+			}
+			if req.URL != nil {
+				c.logger.Printf("-> request: %s %s\n%s", req.Method, req.URL.String(), string(data))
 			}
 		}
-		c.logger.Printf("-> request: %s %s\n%s", req.Method, req.URL.String(), string(data))
 	}
 	cReq := req.Clone(ctx)
 	resp, err := c.httpClient.Do(cReq)
@@ -277,17 +281,17 @@ func (c *Client) bareDo(ctx context.Context, req *http.Request) (*http.Response,
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
-		if c.authenticator != nil && isAuthenticationError(resp) {
-			if refreshableAuthenticator, ok := c.authenticator.(authentication.Refreshable); ok {
-				if rerr := refreshableAuthenticator.Refresh(); rerr != nil {
-					c.logger.Printf("error refreshing authenticator: %v", rerr)
-					return nil, rerr
-				}
-				// Retry one time after a successful refresh
-				return c.bareDo(ctx, req)
-			}
-		}
 		return nil, err
+	}
+	if c.authenticator != nil && isAuthenticationError(resp) {
+		if refreshableAuthenticator, ok := c.authenticator.(authentication.Refreshable); ok {
+			if rerr := refreshableAuthenticator.Refresh(); rerr != nil {
+				c.logger.Printf("error refreshing authenticator: %v", rerr)
+				return nil, rerr
+			}
+			// Retry one time after a successful refresh
+			return c.bareDo(ctx, req)
+		}
 	}
 	if gzipped(resp) {
 		var gerr error
@@ -318,6 +322,9 @@ func gzipped(resp *http.Response) bool {
 }
 
 func isAuthenticationError(resp *http.Response) bool {
+	if resp == nil {
+		return false
+	}
 	return resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized
 }
 
@@ -398,17 +405,14 @@ func addOptions(s string, opts interface{}) (string, error) {
 	if v.Kind() == reflect.Ptr && v.IsNil() {
 		return s, nil
 	}
-
 	u, err := url.Parse(s)
 	if err != nil {
 		return s, err
 	}
-
 	qs, err := query.Values(opts)
 	if err != nil {
 		return s, err
 	}
-
 	u.RawQuery = qs.Encode()
 	return u.String(), nil
 }
