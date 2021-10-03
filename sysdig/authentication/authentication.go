@@ -15,3 +15,11 @@ type Authenticator interface {
 type Refreshable interface {
 	Refresh() error
 }
+
+// AuthenticatorFunc defines a function that will authenticate the given Request.
+type AuthenticatorFunc func(req *http.Request) error
+
+// Authenticate implements Authenticator using the AuthenticatorFunc.
+func (f AuthenticatorFunc) Authenticate(req *http.Request) error {
+	return f(req)
+}

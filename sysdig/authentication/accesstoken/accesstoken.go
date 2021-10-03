@@ -7,6 +7,12 @@ import (
 	"github.com/trinchan/sysdig-go/sysdig/authentication"
 )
 
+const (
+	ibmInstanceIDHeader = "IBMInstanceID"
+	sysdigTeamIDHeader = "TeamID"
+	authorizationHeader = "Authorization"
+)
+
 type authenticator struct {
 	token string
 
@@ -34,12 +40,12 @@ func WithSysdigTeamID(sysdigTeamID string) AuthenticatorOption {
 
 // Authenticate implements the authentication.Authenticator interface using a Sysdig Access Key.
 func (a *authenticator) Authenticate(req *http.Request) error {
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.token))
+	req.Header.Set(authorizationHeader, fmt.Sprintf("Bearer %s", a.token))
 	if a.ibmInstanceID != "" {
-		req.Header.Set("IBMInstanceID", a.ibmInstanceID)
+		req.Header.Set(ibmInstanceIDHeader, a.ibmInstanceID)
 	}
 	if a.sysdigTeamID != "" {
-		req.Header.Set("TeamID", a.sysdigTeamID)
+		req.Header.Set(sysdigTeamIDHeader, a.sysdigTeamID)
 	}
 	return nil
 }
