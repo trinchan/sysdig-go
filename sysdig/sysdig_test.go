@@ -106,48 +106,48 @@ func testNewRequestAndDoFailure(t *testing.T, methodName string, client *Client,
 
 func TestClientOptions(t *testing.T) {
 	tests := []struct {
-		name string
-		option ClientOption
+		name    string
+		option  ClientOption
 		wantErr bool
 	}{
 		{
-			name: "WithLogger",
-			option: WithLogger(noopLog),
+			name:    "WithLogger",
+			option:  WithLogger(noopLog),
 			wantErr: false,
 		},
 		{
-			name: "WithHTTPClient",
-			option: WithHTTPClient(http.DefaultClient),
+			name:    "WithHTTPClient",
+			option:  WithHTTPClient(http.DefaultClient),
 			wantErr: false,
 		},
 		{
-			name: "WithBaseURL",
-			option: WithBaseURL(defaultBaseURL),
+			name:    "WithBaseURL",
+			option:  WithBaseURL(defaultBaseURL),
 			wantErr: false,
 		},
 		{
-			name: "WithBaseURL_Error",
-			option: WithBaseURL("https://:123:weird:url"),
+			name:    "WithBaseURL_Error",
+			option:  WithBaseURL("https://:123:weird:url"),
 			wantErr: true,
 		},
 		{
-			name: "WithIBMBaseURL_Private",
-			option: WithIBMBaseURL(RegionUSSouth, true),
+			name:    "WithIBMBaseURL_Private",
+			option:  WithIBMBaseURL(RegionUSSouth, true),
 			wantErr: false,
 		},
 		{
-			name: "WithIBMBaseURL_Public",
-			option: WithIBMBaseURL(RegionUSSouth, false),
+			name:    "WithIBMBaseURL_Public",
+			option:  WithIBMBaseURL(RegionUSSouth, false),
 			wantErr: false,
 		},
 		{
-			name: "WithUserAgent",
-			option: WithUserAgent(userAgent),
+			name:    "WithUserAgent",
+			option:  WithUserAgent(userAgent),
 			wantErr: false,
 		},
 		{
-			name: "WithNoAuthenticator",
-			option: WithAuthenticator(nil),
+			name:    "WithNoAuthenticator",
+			option:  WithAuthenticator(nil),
 			wantErr: false,
 		},
 		{
@@ -162,13 +162,13 @@ func TestClientOptions(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "WithResponseCompression",
-			option: WithResponseCompression(true),
+			name:    "WithResponseCompression",
+			option:  WithResponseCompression(true),
 			wantErr: false,
 		},
 		{
-			name: "WithDebug",
-			option: WithDebug(false),
+			name:    "WithDebug",
+			option:  WithDebug(false),
 			wantErr: false,
 		},
 	}
@@ -215,7 +215,7 @@ func TestAuthentication(t *testing.T) {
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String() + "/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -226,14 +226,13 @@ func TestAuthentication(t *testing.T) {
 	defer resp.Body.Close()
 }
 
-
 func TestClientResponses(t *testing.T) {
 	client, mux, _, teardown := setup()
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String() + "/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -253,7 +252,7 @@ func TestBareDo_Zipped(t *testing.T) {
 		respW := gzip.NewWriter(w)
 		respW.Write([]byte("ok"))
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String() + "/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -274,7 +273,7 @@ func TestBareDo_AuthenticationError(t *testing.T) {
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String() + "/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -301,7 +300,7 @@ func TestBareDo_AuthenticationRefreshable(t *testing.T) {
 	hit := 0
 	client, mux, _, teardown := setup(WithAuthenticator(&refreshableAuthenticationWrapper{
 		Authenticator: a,
-		Refresher: func() error {hit++; return nil },
+		Refresher:     func() error { hit++; return nil },
 	}))
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
@@ -311,7 +310,7 @@ func TestBareDo_AuthenticationRefreshable(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		}
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String() + "/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -330,7 +329,7 @@ func TestBareDo_DoError(t *testing.T) {
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String() + "/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}

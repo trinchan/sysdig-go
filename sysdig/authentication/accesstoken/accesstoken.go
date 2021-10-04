@@ -9,7 +9,7 @@ import (
 
 const (
 	ibmInstanceIDHeader = "IBMInstanceID"
-	sysdigTeamIDHeader = "TeamID"
+	sysdigTeamIDHeader  = "TeamID"
 	authorizationHeader = "Authorization"
 )
 

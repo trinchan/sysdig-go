@@ -107,7 +107,7 @@ func TestEventsService_ListEvents(t *testing.T) {
 			},
 		},
 		{
-			name:    "test",
+			name: "test",
 			options: &ListEventOptions{
 				Categories: Categories{CategoryCustom},
 			},
