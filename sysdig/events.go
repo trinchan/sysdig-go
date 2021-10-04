@@ -127,7 +127,7 @@ func NewTime(t time.Time) *Time {
 
 // MarshalJSON implements the json.Marshaler interface for Time.
 func (t Time) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.Time.UnixMilli())
+	return json.Marshal(t.UnixMilli())
 }
 
 // UnmarshalJSON implements json.Unmarshaler for Time.
@@ -136,7 +136,7 @@ func (t *Time) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	t.Time = time.UnixMilli(int64(u))
+	*t = UnixMilli(int64(u))
 	return nil
 }
 
