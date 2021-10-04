@@ -63,16 +63,6 @@ func testMethod(t *testing.T, r *http.Request, want string) {
 	}
 }
 
-func testURLParseError(t *testing.T, err error) {
-	t.Helper()
-	if err == nil {
-		t.Errorf("Expected error to be returned")
-	}
-	if uerr, ok := err.(*url.Error); !ok || uerr.Op != "parse" {
-		t.Errorf("Expected URL parse error, got %+v", err)
-	}
-}
-
 // Test how bad options are handled. Method f under test should
 // return an error.
 func testBadOptions(t *testing.T, methodName string, f func() error) {
@@ -210,12 +200,12 @@ func TestAuthentication(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client, mux, _, teardown := setup(WithAuthenticator(a))
+	client, mux, baseURL, teardown := setup(WithAuthenticator(a))
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/api/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -227,12 +217,12 @@ func TestAuthentication(t *testing.T) {
 }
 
 func TestClientResponses(t *testing.T) {
-	client, mux, _, teardown := setup()
+	client, mux, baseURL, teardown := setup()
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/api/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -244,23 +234,24 @@ func TestClientResponses(t *testing.T) {
 }
 
 func TestBareDo_Zipped(t *testing.T) {
-	client, mux, _, teardown := setup()
+	client, mux, baseURL, teardown := setup()
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Encoding", "text/plain; gzip; charset=utf8")
 		w.WriteHeader(http.StatusOK)
 		respW := gzip.NewWriter(w)
-		respW.Write([]byte("ok"))
+		if _, err := respW.Write([]byte("ok")); err != nil {
+			t.Errorf("error writing response: %v", err)
+		}
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/api/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
-	resp, err := client.BareDo(context.Background(), req)
+	_, err = client.BareDo(context.Background(), req)
 	if err != nil {
 		t.Fatalf("failed to baredo: %v", err)
 	}
-	defer resp.Body.Close()
 }
 
 func TestBareDo_AuthenticationError(t *testing.T) {
@@ -268,12 +259,12 @@ func TestBareDo_AuthenticationError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client, mux, _, teardown := setup(WithAuthenticator(a))
+	client, mux, baseURL, teardown := setup(WithAuthenticator(a))
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/api/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -298,7 +289,7 @@ func TestBareDo_AuthenticationRefreshable(t *testing.T) {
 		t.Fatal(err)
 	}
 	hit := 0
-	client, mux, _, teardown := setup(WithAuthenticator(&refreshableAuthenticationWrapper{
+	client, mux, baseURL, teardown := setup(WithAuthenticator(&refreshableAuthenticationWrapper{
 		Authenticator: a,
 		Refresher:     func() error { hit++; return nil },
 	}))
@@ -310,7 +301,7 @@ func TestBareDo_AuthenticationRefreshable(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		}
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/api/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}
@@ -324,12 +315,12 @@ func TestBareDo_AuthenticationRefreshable(t *testing.T) {
 }
 
 func TestBareDo_DoError(t *testing.T) {
-	client, mux, _, teardown := setup()
+	client, mux, baseURL, teardown := setup()
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	})
-	req, err := http.NewRequest(http.MethodGet, client.BaseURL.String()+"/foo", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/api/foo", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
 	}

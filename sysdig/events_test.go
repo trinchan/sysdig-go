@@ -55,9 +55,9 @@ func TestEventsService_CreateEvent(t *testing.T) {
 		},
 		{
 			name:    "test w/ time",
-			options: EventOptions{Name: "test", Timestamp: NewTime(time.UnixMilli(1))},
+			options: EventOptions{Name: "test", Timestamp: NewTime(time.Unix(0, time.Millisecond.Nanoseconds()))},
 			output:  `{"event":{"id":"1","timestamp":1}}`,
-			want:    &EventResponse{Event: Event{ID: "1", Timestamp: *NewTime(time.UnixMilli(1))}},
+			want:    &EventResponse{Event: Event{ID: "1", Timestamp: *NewTime(time.Unix(0, time.Millisecond.Nanoseconds()))}},
 		},
 	}
 	for _, test := range tests {
