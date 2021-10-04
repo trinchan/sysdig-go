@@ -44,7 +44,7 @@ func TestAuthenticatorEmpty(t *testing.T) {
 }
 
 func TestAuthenticatorBadOption(t *testing.T) {
-	_, err := Authenticator("foo", func(a *authenticator) error { return errors.New("test error")})
+	_, err := Authenticator("foo", func(a *authenticator) error { return errors.New("test error") })
 	if err == nil {
 		t.Fatal("did not return an expected error")
 	}
