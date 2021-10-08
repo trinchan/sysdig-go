@@ -408,7 +408,7 @@ func (c *prometheusClient) Do(ctx context.Context, request *http.Request) (*http
 		return nil, nil, err
 	}
 	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(resp.Body)
 	return resp, b, err
 }
 
