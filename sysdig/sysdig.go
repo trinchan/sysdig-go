@@ -273,7 +273,7 @@ func (c *Client) bareDo(ctx context.Context, req *http.Request) (*http.Response,
 			var data []byte
 			if req.Body != nil {
 				var rerr error
-				data, rerr = ioutil.ReadAll(req.Body)
+				data, rerr = io.ReadAll(req.Body)
 				if rerr != nil {
 					c.logger.Printf("failed to read request body for debugging: %v", rerr)
 				} else {
@@ -314,7 +314,7 @@ func (c *Client) bareDo(ctx context.Context, req *http.Request) (*http.Response,
 		}
 	}
 	if c.debug {
-		data, rerr := ioutil.ReadAll(resp.Body)
+		data, rerr := io.ReadAll(resp.Body)
 		if err != nil {
 			c.logger.Printf("failed to read response body for debugging: %v", rerr)
 		} else {
@@ -408,7 +408,7 @@ func (c *prometheusClient) Do(ctx context.Context, request *http.Request) (*http
 		return nil, nil, err
 	}
 	defer resp.Body.Close()
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	return resp, b, err
 }
 
@@ -442,7 +442,7 @@ func (c *Client) CheckResponse(r *http.Response) error {
 		return nil
 	}
 	errorResponse := &ErrorResponse{Response: r}
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err == nil && data != nil {
 		if uerr := json.Unmarshal(data, errorResponse); uerr != nil {
 			errorResponse.Message = fmt.Sprintf("error unmarshaling error response: %v", uerr)
