@@ -2,35 +2,36 @@ package scope
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
-// Scope defines a filter for an EventsService.ListEvents.
+// Scope defines a filter for an EventsService.List.
 type Scope struct {
 	selections []scopeSelection
 }
 
-// EventScope defines the Scope labels for an EventsService.CreateEvent
+// EventScope defines the Scope labels for an EventsService.Create
 type EventScope Scope
 
 // Selector defines a type for Scope filter operators.
 type Selector string
 
 const (
-	// SelectionIs filters EventsService.ListEvents to Events which do not exactly match the provided value.
+	// SelectionIs filters EventsService.List to Events which do not exactly match the provided value.
 	// It is also used to set Scope labels for a created Event.
 	SelectionIs Selector = "="
-	// SelectionIsNot filters EventsService.ListEvents to Events which do not exactly match the provided value.
+	// SelectionIsNot filters EventsService.List to Events which do not exactly match the provided value.
 	SelectionIsNot Selector = "!="
-	// SelectionIn filters EventsService.ListEvents to Events which exactly match one of the provided values.
+	// SelectionIn filters EventsService.List to Events which exactly match one of the provided values.
 	SelectionIn Selector = "in"
-	// SelectionNotIn filters EventsService.ListEvents to Events which do not exactly match one of the provided values.
+	// SelectionNotIn filters EventsService.List to Events which do not exactly match one of the provided values.
 	SelectionNotIn Selector = "not in"
-	// SelectionContains filters EventsService.ListEvents to Events which substring match the provided value.
+	// SelectionContains filters EventsService.List to Events which substring match the provided value.
 	SelectionContains Selector = "contains"
-	// SelectionDoesNotContain filters EventsService.ListEvents to Events which do not substring match the provided value.
+	// SelectionDoesNotContain filters EventsService.List to Events which do not substring match the provided value.
 	SelectionDoesNotContain Selector = "does not contain"
-	// SelectionStartsWith filters EventsService.ListEvents to Events which are prefixed with the provided value.
+	// SelectionStartsWith filters EventsService.List to Events which are prefixed with the provided value.
 	SelectionStartsWith Selector = "starts with"
 )
 
@@ -40,12 +41,12 @@ type scopeSelection struct {
 	selector Selector
 }
 
-// New initializes a new Scope to be used for filters in EventsService.ListEvents.
+// New initializes a new Scope to be used for filters in EventsService.List.
 func New() *Scope {
 	return &Scope{}
 }
 
-// NewEventScope initializes a new EventScope to be used for adding scope labels to an event in EventsService.CreateEvent.
+// NewEventScope initializes a new EventScope to be used for adding scope labels to an event in EventsService.Create.
 func NewEventScope() *EventScope {
 	return NewEventScopeWithLabels(nil)
 }
@@ -53,8 +54,13 @@ func NewEventScope() *EventScope {
 // NewEventScopeWithLabels initializes a new EventScope with the provided scope labels.
 func NewEventScopeWithLabels(labels map[string]string) *EventScope {
 	s := &EventScope{}
-	for k, v := range labels {
-		s.AddIsSelection(k, v)
+	var keys []string
+	for k := range labels {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		s.AddIsSelection(k, labels[k])
 	}
 	return s
 }

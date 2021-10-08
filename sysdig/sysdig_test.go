@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/trinchan/sysdig-go/sysdig/authentication"
 	"github.com/trinchan/sysdig-go/sysdig/authentication/accesstoken"
 )
@@ -72,6 +73,31 @@ func testBadOptions(t *testing.T, methodName string, f func() error) {
 	}
 	if err := f(); err == nil {
 		t.Errorf("bad options %v err = nil, want error", methodName)
+	}
+}
+
+type values map[string]string
+
+func testFormValues(t *testing.T, r *http.Request, values values) {
+	t.Helper()
+	want := url.Values{}
+	for k, v := range values {
+		want.Set(k, v)
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		t.Errorf("Bad form: %v", err)
+	}
+	if got := r.Form; !cmp.Equal(got, want) {
+		t.Errorf("Request parameters: %v, want %v", got, want)
+	}
+}
+
+func testHeader(t *testing.T, r *http.Request, header string, want string) {
+	t.Helper()
+	if got := r.Header.Get(header); got != want {
+		t.Errorf("Header.Get(%q) returned %q, want %q", header, got, want)
 	}
 }
 
@@ -203,6 +229,7 @@ func TestAuthentication(t *testing.T) {
 	client, mux, baseURL, teardown := setup(WithAuthenticator(a))
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
+		testHeader(t, r, authentication.AuthorizationHeader, authentication.AuthorizationHeaderFor("foo"))
 		w.WriteHeader(http.StatusOK)
 	})
 	req, err := http.NewRequest(http.MethodGet, baseURL+"/api/foo", nil)
@@ -231,6 +258,22 @@ func TestClientResponses(t *testing.T) {
 		t.Fatalf("failed to baredo: %v", err)
 	}
 	defer resp.Body.Close()
+}
+
+func TestPrometheusClient(t *testing.T) {
+	client, mux, _, teardown := setup()
+	defer teardown()
+	mux.HandleFunc("/prometheus/api/v1/", func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte(`{"status":"success","data":{"alerts":[]}}`))
+		if err != nil {
+			t.Errorf("could not write response: %v", err)
+		}
+	})
+	prom := client.PrometheusClient()
+	_, err := prom.Alerts(context.TODO())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestBareDo_Zipped(t *testing.T) {

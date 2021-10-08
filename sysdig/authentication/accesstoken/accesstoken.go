@@ -30,6 +30,7 @@ func WithIBMInstanceID(ibmInstanceID string) AuthenticatorOption {
 }
 
 // WithSysdigTeamID sets the TeamID to be set for IBM Sysdig requests.
+// May not be required. TODO: check if this is still required.
 // See: https://cloud.ibm.com/docs/monitoring?topic=monitoring-team_id
 func WithSysdigTeamID(sysdigTeamID string) AuthenticatorOption {
 	return func(a *authenticator) error {
@@ -40,7 +41,7 @@ func WithSysdigTeamID(sysdigTeamID string) AuthenticatorOption {
 
 // Authenticate implements the authentication.Authenticator interface using a Sysdig Access Key.
 func (a *authenticator) Authenticate(req *http.Request) error {
-	req.Header.Set(authorizationHeader, fmt.Sprintf("Bearer %s", a.token))
+	req.Header.Set(authorizationHeader, authentication.AuthorizationHeaderFor(a.token))
 	if a.ibmInstanceID != "" {
 		req.Header.Set(ibmInstanceIDHeader, a.ibmInstanceID)
 	}

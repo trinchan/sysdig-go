@@ -1,16 +1,33 @@
-//go:build !go1.17
-// +build !go1.17
-
 package sysdig
 
-import "time"
+import (
+	"encoding/json"
+	"strconv"
+	"time"
+)
 
-// UnixMilli converts the time to Unix milliseconds for Sysdig.
-func (t *Time) UnixMilli() int64 {
-	return t.Unix()*1e3 + int64(t.Nanosecond())/1e6
+// MilliTime is a custom time.Time which implements transforming between time.Time's default representation and Sysdig's
+// expected time.UnixMillis representation.
+type MilliTime struct {
+	time.Time
 }
 
-// UnixMilli returns the local Time corresponding to the given Unix time,
-func UnixMilli(msec int64) Time {
-	return *NewTime(time.Unix(msec/1e3, (msec%1e3)*1e6))
+// NewMilliTime creates a new MilliTime with the provided time.Time.
+func NewMilliTime(t time.Time) MilliTime {
+	return MilliTime{t}
+}
+
+// MarshalJSON implements the json.Marshaler interface for MilliTime.
+func (t MilliTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.UnixMilli())
+}
+
+// UnmarshalJSON implements json.Unmarshaler for MilliTime.
+func (t *MilliTime) UnmarshalJSON(b []byte) error {
+	u, err := strconv.Atoi(string(b))
+	if err != nil {
+		return err
+	}
+	*t = UnixMilli(int64(u))
+	return nil
 }

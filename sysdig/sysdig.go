@@ -10,9 +10,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 	"reflect"
 	"strings"
 
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/trinchan/sysdig-go/sysdig/authentication"
 
 	"github.com/google/go-querystring/query"
@@ -33,7 +35,7 @@ func (l *noopLogger) Printf(format string, args ...interface{}) {}
 
 const (
 	defaultBaseURL = "https://app.sysdigcloud.com/"
-	ibmBaseURL     = "monitoring.cloud.ibm.com/api/"
+	ibmBaseURL     = "monitoring.cloud.ibm.com/"
 
 	userAgent = "sysdig-go"
 )
@@ -82,11 +84,40 @@ type Client struct {
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
 	// Services used for talking to different parts of the Sysdig API.
-	Events *EventsService
+	Events               *EventsService
+	Users                *UsersService
+	NotificationChannels *NotificationChannelsService
+	Alerts               *AlertService
+	Dashboards           *DashboardService
+	Teams                *TeamsService
 }
 
 // ClientOption defines the options for a Sysdig Client.
 type ClientOption func(*Client) error
+
+// NewClient creates a new Sysdig Client and applies all provided ClientOption.
+func NewClient(options ...ClientOption) (*Client, error) {
+	baseURL, _ := url.Parse(defaultBaseURL)
+	c := &Client{
+		BaseURL:    baseURL,
+		UserAgent:  userAgent,
+		httpClient: http.DefaultClient,
+		logger:     noopLog,
+	}
+	for _, o := range options {
+		if err := o(c); err != nil {
+			return nil, err
+		}
+	}
+	c.common.client = c
+	c.Events = (*EventsService)(&c.common)
+	c.Users = (*UsersService)(&c.common)
+	c.NotificationChannels = (*NotificationChannelsService)(&c.common)
+	c.Alerts = (*AlertService)(&c.common)
+	c.Dashboards = (*DashboardService)(&c.common)
+	c.Teams = (*TeamsService)(&c.common)
+	return c, nil
+}
 
 // WithHTTPClient sets the HTTP client for the Sysdig client.
 func WithHTTPClient(client *http.Client) ClientOption {
@@ -159,25 +190,6 @@ func WithDebug(debug bool) ClientOption {
 		c.debug = debug
 		return nil
 	}
-}
-
-// NewClient creates a new Sysdig Client and applies all provided ClientOption.
-func NewClient(options ...ClientOption) (*Client, error) {
-	baseURL, _ := url.Parse(defaultBaseURL)
-	c := &Client{
-		BaseURL:    baseURL,
-		UserAgent:  userAgent,
-		httpClient: http.DefaultClient,
-		logger:     noopLog,
-	}
-	for _, o := range options {
-		if err := o(c); err != nil {
-			return nil, err
-		}
-	}
-	c.common.client = c
-	c.Events = (*EventsService)(&c.common)
-	return c, nil
 }
 
 // Client returns the http.Client used by this Sysdig client.
@@ -356,6 +368,48 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 		}
 	}
 	return resp, err
+}
+
+// PrometheusClient creates a Prometheus Client using the Sysdig Client as a base.
+// Note: only a subset of the PrometheusClient APIs are implemented by Sysdig.
+// Known working:
+// - Query
+// - QueryRange
+// - Alerts.
+func (c *Client) PrometheusClient() v1.API {
+	return v1.NewAPI(&prometheusClient{client: c})
+}
+
+type prometheusClient struct {
+	client *Client
+}
+
+// URL implements URL for the Prometheus API Client interface.
+// See: https://github.com/prometheus/client_golang/blob/v1.9.0/api/client.go
+func (c *prometheusClient) URL(endpoint string, args map[string]string) *url.URL {
+	p := path.Join("prometheus", endpoint)
+	for arg, val := range args {
+		arg = ":" + arg
+		p = strings.ReplaceAll(p, arg, val)
+	}
+	u, err := c.client.BaseURL.Parse(p)
+	if err != nil {
+		c.client.logger.Printf("invalid prometheus endpoint %q: %v", endpoint, err)
+		return nil
+	}
+	return u
+}
+
+// Do implements Do for the Prometheus Client API client.
+// See: https://github.com/prometheus/client_golang/blob/v1.9.0/api/client.go
+func (c *prometheusClient) Do(ctx context.Context, request *http.Request) (*http.Response, []byte, error) {
+	resp, err := c.client.BareDo(ctx, request)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	return resp, b, err
 }
 
 // ErrorResponse reports one or more errors caused by an API request.
