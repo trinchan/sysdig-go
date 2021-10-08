@@ -9,6 +9,8 @@
 
 ## Installation ##
 
+`sysdig-go` supports **go >=1.16**.
+
 ```bash
 go get github.com/trinchan/sysdig-go
 ```
