@@ -8,14 +8,14 @@ import (
 )
 
 func TestAuthenticator(t *testing.T) {
-	wantIBMIDHeader := "ibmid"
+	wantIBMIDHeader := "ibmiam"
 	wantSysdigTeamID := "ibm"
 	wantAccessToken := "foo"
 	a, err := Authenticator(wantAccessToken, WithIBMInstanceID(wantIBMIDHeader), WithSysdigTeamID(wantSysdigTeamID))
 	if err != nil {
 		t.Fatal(err)
 	}
-	req, err := http.NewRequest(http.MethodGet, "htts://example.com", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://example.com", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/trinchan/sysdig-go/sysdig/authentication"
 )
@@ -16,6 +17,12 @@ const (
 	DefaultIAMEndpoint = "https://iam.cloud.ibm.com/identity/token"
 	// TestIAMEndpoint is the test IAM endpoint for IBM Cloud.
 	TestIAMEndpoint = "https://iam.test.cloud.ibm.com/identity/token"
+
+	// DefaultRefreshBeforeExpirationDuration is the default duration before expected expiration to refresh the IAM token.
+	DefaultRefreshBeforeExpirationDuration = 5 * time.Minute
+	// tokenValidDuration is the default validity period for IBM Cloud IAM tokens.
+	tokenValidDuration   = time.Hour
+	defaultRefreshBefore = tokenValidDuration - DefaultRefreshBeforeExpirationDuration
 )
 
 type iamTokenResponse struct {
@@ -32,30 +39,28 @@ type authenticator struct {
 	apiKey        string
 	ibmInstanceID string
 	sysdigTeamID  string
+	refreshBefore time.Duration
 
-	lock  sync.RWMutex
-	token iamTokenResponse
+	lock        sync.RWMutex
+	lastRefresh time.Time
+	token       iamTokenResponse
 }
 
 // Authenticate implements authentication.Authenticator using IBM Cloud IAM.
 func (a *authenticator) Authenticate(req *http.Request) error {
+	if time.Since(a.lastRefresh) > a.refreshBefore {
+		if err := a.Refresh(); err != nil {
+			return err
+		}
+	}
 	a.lock.RLock()
 	at := a.token.AccessToken
 	a.lock.RUnlock()
 
-	if at == "" {
-		if err := a.Refresh(); err != nil {
-			return err
-		}
-		a.lock.RLock()
-		at = a.token.AccessToken
-		a.lock.RUnlock()
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", at))
-	req.Header.Set("IBMInstanceID", a.ibmInstanceID)
+	req.Header.Set(authentication.AuthorizationHeader, authentication.AuthorizationHeaderFor(at))
+	req.Header.Set(authentication.IBMInstanceIDHeader, a.ibmInstanceID)
 	if a.sysdigTeamID != "" {
-		req.Header.Set("TeamID", a.sysdigTeamID)
+		req.Header.Set(authentication.SysdigTeamIDHeader, a.sysdigTeamID)
 	}
 	return nil
 }
@@ -87,12 +92,13 @@ func (a *authenticator) refreshAccessToken() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to refresh token: %d: %w", resp.StatusCode, err)
+		return fmt.Errorf("failed to refresh token: %d: %v", resp.StatusCode, err)
 	}
 	err = json.NewDecoder(resp.Body).Decode(&a.token)
 	if err != nil {
 		return err
 	}
+	a.lastRefresh = time.Now()
 	return nil
 }
 
@@ -107,18 +113,25 @@ func WithHTTPClient(c *http.Client) AuthenticatorOption {
 	}
 }
 
-// WithIAMEndpoint sets the IAM endpoint to be used for IAM authentication.
-func WithIAMEndpoint(iamEndpoint string) AuthenticatorOption {
+// WithRefreshBeforeDuration sets the duration before expiration to trigger a token refresh.
+func WithRefreshBeforeDuration(duration time.Duration) AuthenticatorOption {
 	return func(a *authenticator) error {
-		a.iamEndpoint = iamEndpoint
+		if duration > tokenValidDuration {
+			return fmt.Errorf(
+				"invalid refresh before duration: %s, must be less than expiration time: %s",
+				duration,
+				tokenValidDuration,
+			)
+		}
+		a.refreshBefore = tokenValidDuration - duration
 		return nil
 	}
 }
 
-// WithAPIKey sets the IBM Cloud API key to be used for IAM authentication.
-func WithAPIKey(apiKey string) AuthenticatorOption {
+// WithIAMEndpoint sets the IAM endpoint to be used for IAM authentication.
+func WithIAMEndpoint(iamEndpoint string) AuthenticatorOption {
 	return func(a *authenticator) error {
-		a.apiKey = apiKey
+		a.iamEndpoint = iamEndpoint
 		return nil
 	}
 }
@@ -133,6 +146,7 @@ func WithIBMInstanceID(ibmInstanceID string) AuthenticatorOption {
 }
 
 // WithSysdigTeamID sets the TeamID to be set for IBM Sysdig requests.
+// May not be required. TODO: check if this is still required.
 // See: https://cloud.ibm.com/docs/monitoring?topic=monitoring-team_id
 func WithSysdigTeamID(sysdigTeamID string) AuthenticatorOption {
 	return func(a *authenticator) error {
@@ -142,10 +156,15 @@ func WithSysdigTeamID(sysdigTeamID string) AuthenticatorOption {
 }
 
 // Authenticator returns an authentication.Authenticator for IBM Cloud IAM.
-func Authenticator(options ...AuthenticatorOption) (authentication.Authenticator, error) {
+func Authenticator(apiKey string, options ...AuthenticatorOption) (authentication.Authenticator, error) {
+	if apiKey == "" {
+		return nil, fmt.Errorf("apikey cannot be blank")
+	}
 	a := &authenticator{
-		httpClient:  http.DefaultClient,
-		iamEndpoint: DefaultIAMEndpoint,
+		httpClient:    http.DefaultClient,
+		iamEndpoint:   DefaultIAMEndpoint,
+		refreshBefore: defaultRefreshBefore,
+		apiKey:        apiKey,
 	}
 	for _, o := range options {
 		if err := o(a); err != nil {

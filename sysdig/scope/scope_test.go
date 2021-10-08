@@ -100,7 +100,7 @@ func TestEventScopeString(t *testing.T) {
 		{
 			name:  "WithLabels",
 			scope: NewEventScopeWithLabels(map[string]string{"foo": "bar", "baz": "biz"}),
-			want:  `foo = 'bar' and baz = 'biz'`,
+			want:  `baz = 'biz' and foo = 'bar'`,
 		},
 		{
 			name:  "Is",
