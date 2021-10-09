@@ -34,10 +34,10 @@ and run `go get` without parameters.
 | `/token`                |✓    |x     |x       |x       |x       |x                        | `client.Users`                |[Retrieves the current user's access token](https://docs.sysdig.com/en/docs/administration/administration-settings/find-your-customer-id-and-name/) |
 | `/agents/connected`     |✓    |x     |x       |x       |x       |x                        | `client.Users`                |[Rerieves the connected Agents](https://docs.sysdig.com/en/docs/sysdig-monitor/)
 | `/alerts`               |✓    |✓     |✓       |x       |x       |x                        | `client.Alerts`               |[Manage alert configurations](https://docs.sysdig.com/en/docs/sysdig-monitor/alerts/manage-alerts/) |
-| `/v3/dashboards`        |✓    |✓     |✓       |✓       |✓       |Favorite, Transfer       | `client.Dashboards`           |Manage dashboard configurations |
-| `/v2/events`            |✓    |✓     |✓       |✓       |x       |x                        | `client.Events`               |Manage event notifications |
-| `/notificationChannels` |✓    |✓     |✓       |✓       |x       |x                        | `client.NotificationChannels` |Manage notification channels |
-| `/prometheus`           |✓    |✓     |x       |x       |x       |x                        | `client.Prometheus`           |Prometheus HTTP API |
+| `/v3/dashboards`        |✓    |✓     |✓       |✓       |✓       |Favorite, Transfer       | `client.Dashboards`           |[Manage dashboard configurations](https://docs.sysdig.com/en/docs/sysdig-monitor/dashboards/) |
+| `/v2/events`            |✓    |✓     |✓       |✓       |x       |x                        | `client.Events`               |[Manage event notifications](https://docs.sysdig.com/en/docs/sysdig-monitor/events/) |
+| `/notificationChannels` |✓    |✓     |✓       |✓       |x       |x                        | `client.NotificationChannels` |[Manage notification channels](https://docs.sysdig.com/en/docs/administration/administration-settings/notifications-management/set-up-notification-channels/) |
+| `/prometheus`           |✓    |✓     |x       |x       |x       |x                        | `client.Prometheus`           |[Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/) |
 
 ## Usage ##
 
@@ -188,7 +188,7 @@ See the [example](https://github.com/trinchan/sysdig-go/tree/master/example) dir
 
 Sysdig offers a limited [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api).
 
-This API is exposed via the `PrometheusClient()` function of the Client. You can use this client to run PromQL queries against your Sysdig instance.
+This API is exposed via the `Prometheus` Service of the Client. You can use this client to run PromQL queries against your Sysdig instance.
 
 _Most_ functionality of the HTTP API is not available from Sysdig, but they appear to be offering more and more.
 See the [Prometheus example](https://github.com/trinchan/sysdig-go/tree/master/example/prometheus).
