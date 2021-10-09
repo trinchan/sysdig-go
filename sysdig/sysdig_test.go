@@ -25,7 +25,8 @@ const (
 // setup sets up a test HTTP server along with a sysdig.Client that is
 // configured to talk to that test server. Tests should register handlers on
 // mux which provide mock responses for the API method being tested.
-func setup(authenticator authentication.Authenticator, options ...ClientOption) (client *Client, mux *http.ServeMux, serverURL string, teardown func()) {
+func setup(authenticator authentication.Authenticator) (
+	client *Client, mux *http.ServeMux, serverURL string, teardown func()) {
 	// mux is the HTTP request multiplexer used with the test server.
 	mux = http.NewServeMux()
 
@@ -48,9 +49,6 @@ func setup(authenticator authentication.Authenticator, options ...ClientOption) 
 	// client is the Sysdig client being tested and is
 	// configured to use test server.
 	client, _ = NewClient(authenticator, WithDebug(true))
-	for _, o := range options {
-		_ = o(client)
-	}
 	url, _ := url.Parse(server.URL + baseURLPath + "/")
 	client.BaseURL = url
 

@@ -81,20 +81,20 @@ func TestTeamsService_List(t *testing.T) {
 			name: "test sdc",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				testMethod(t, r, http.MethodGet)
-				testFormValues(t, r, values{"product": string(ProductTypeSDC)})
+				testFormValues(t, r, values{"product": string(ProductTypeMonitor)})
 				fmt.Fprint(w, `{"teams":[{"id":1}]}`)
 			},
-			productType: ProductTypeSDC,
+			productType: ProductTypeMonitor,
 			want:        &ListTeamsResponse{Teams: []Team{{ID: 1}}},
 		},
 		{
 			name: "test sds",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				testMethod(t, r, http.MethodGet)
-				testFormValues(t, r, values{"product": string(ProductTypeSDS)})
+				testFormValues(t, r, values{"product": string(ProductTypeSecure)})
 				fmt.Fprint(w, `{"teams":[{"id":1}]}`)
 			},
-			productType: ProductTypeSDS,
+			productType: ProductTypeSecure,
 			want:        &ListTeamsResponse{Teams: []Team{{ID: 1}}},
 		},
 	}

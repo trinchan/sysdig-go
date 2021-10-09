@@ -9,6 +9,8 @@ import (
 // DashboardService is the Service for communicating with the Sysdig Monitor Dashboard related API.
 type DashboardService service
 
+// Dashboard is the structure for a Sysdig Dashboard.
+// See: https://docs.sysdig.com/en/docs/sysdig-monitor/dashboards/
 type Dashboard struct {
 	ID                   int                  `json:"id,omitempty"`
 	TeamID               int                  `json:"teamId"`
@@ -33,15 +35,17 @@ type Dashboard struct {
 	ScopeExpressionList  []ScopeExpression    `json:"scopeExpressionList,omitempty"`
 }
 
-type DashboardResponse struct {
-	Dashboard Dashboard `json:"dashboard"`
-}
-
+// NewDashboard constructs an empty Dashboard with the given name.
 func NewDashboard(name string) *Dashboard {
 	return &Dashboard{
 		Name:   name,
 		Schema: 3,
 	}
+}
+
+// DashboardResponse is a container for a Dashboard returned by the DashboardService API.
+type DashboardResponse struct {
+	Dashboard Dashboard `json:"dashboard"`
 }
 
 // Get retrieves a Dashboard.
@@ -56,6 +60,7 @@ func (s *DashboardService) Get(ctx context.Context, dashboardID int) (*Dashboard
 	return c, resp, err
 }
 
+// ListDashboardsResponse is a container for Dashboards returned by the DashboardService.List API.
 type ListDashboardsResponse struct {
 	Dashboards []Dashboard `json:"dashboards"`
 }
@@ -72,6 +77,7 @@ func (s *DashboardService) List(ctx context.Context) (*ListDashboardsResponse, *
 	return c, resp, err
 }
 
+// Create creates a new Dashboard.
 func (s *DashboardService) Create(ctx context.Context, dashboard Dashboard) (*DashboardResponse, *http.Response, error) {
 	type dashboardRequest struct {
 		Dashboard Dashboard `json:"dashboard"`
@@ -135,10 +141,12 @@ func (s *DashboardService) Favorite(ctx context.Context, id int, favorite bool) 
 	return c, resp, err
 }
 
+// DashboardTransferResponse is a container for a DashboardTransferResults for the DashboardService.Transfer API.
 type DashboardTransferResponse struct {
 	Results DashboardTransferResults `json:"results"`
 }
 
+// DashboardTransferResults is the response structure for the DashboardService.Transfer API.
 type DashboardTransferResults struct {
 	ID              int              `json:"id"`
 	Name            string           `json:"name"`
@@ -182,11 +190,13 @@ func (s *DashboardService) Transfer(
 	return c, resp, err
 }
 
+// SharingSetting defines a sharing setting for a Dashboard.
 type SharingSetting struct {
 	Role   string        `json:"role"`
 	Member SharingMember `json:"member"`
 }
 
+// SharingMember defines a sharing member for a Dashboard.
 type SharingMember struct {
 	Type      string `json:"type"`
 	ID        int    `json:"id"`
@@ -194,6 +204,7 @@ type SharingMember struct {
 	TeamTheme string `json:"teamTheme"`
 }
 
+// ScopeExpression is a scope expression used in a Dashboard.
 type ScopeExpression struct {
 	Operand     string   `json:"operand"`
 	Operator    string   `json:"operator"`
@@ -204,6 +215,7 @@ type ScopeExpression struct {
 	IsVariable  bool     `json:"isVariable"`
 }
 
+// Layout defines the Layout of Panels a Dashboard.
 type Layout struct {
 	PanelID int `json:"panelId"`
 	X       int `json:"x"`
@@ -212,6 +224,7 @@ type Layout struct {
 	H       int `json:"h"`
 }
 
+// Panel is the structure of a Panel in a Dashboard.
 type Panel struct {
 	ID                     int                 `json:"id"`
 	Type                   string              `json:"type"`
@@ -230,6 +243,7 @@ type Panel struct {
 	TextAutosized          bool                `json:"textAutosized,omitempty"`
 }
 
+// BasicQuery is a basic query type used in a Dashboard.
 type BasicQuery struct {
 	Enabled      bool                   `json:"enabled"`
 	DisplayInfo  BasicQueryDisplayInfo  `json:"displayInfo"`
@@ -240,17 +254,20 @@ type BasicQuery struct {
 	Segmentation BasicQuerySegmentation `json:"segmentation,omitempty"`
 }
 
+// BasicQueryCompareTo is used in a BasicQuery on a Dashboard.
 type BasicQueryCompareTo struct {
 	Enabled    bool   `json:"enabled"`
 	Delta      int    `json:"delta"`
 	TimeFormat string `json:"timeFormat"`
 }
 
+// BasicQueryScope is a scope used in a BasicQuery on a Dashboard.
 type BasicQueryScope struct {
 	Expressions           []string `json:"expressions"`
 	ExtendsDashboardScope bool     `json:"extendsDashboardScope"`
 }
 
+// BasicQueryMetric is a metric used in a BasicQuery on a Dashboard.
 type BasicQueryMetric struct {
 	ID               string      `json:"id"`
 	TimeAggregation  string      `json:"timeAggregation"`
@@ -259,12 +276,14 @@ type BasicQueryMetric struct {
 	Sorting          interface{} `json:"sorting"`
 }
 
+// BasicQueryDisplayInfo is the display info used in a BasicQuery on a Dashboard.
 type BasicQueryDisplayInfo struct {
 	DisplayName                   string `json:"displayName"`
 	TimeSeriesDisplayNameTemplate string `json:"timeSeriesDisplayNameTemplate"`
 	Type                          string `json:"type"`
 }
 
+// BasicQueryFormat is the metric format used in a BasicQuery on a Dashboard.
 type BasicQueryFormat struct {
 	Unit                 string `json:"unit"`
 	InputFormat          string `json:"inputFormat"`
@@ -274,12 +293,14 @@ type BasicQueryFormat struct {
 	NullValueDisplayMode string `json:"nullValueDisplayMode"`
 }
 
+// BasicQuerySegmentation is the segmentation used in a BasicQuery on a Dashboard.
 type BasicQuerySegmentation struct {
 	Labels    []BasicQuerySegmentationLabel `json:"labels"`
 	Limit     int                           `json:"limit"`
 	Direction string                        `json:"direction"`
 }
 
+// BasicQuerySegmentationLabel is a segmentation label used in a BasicQuerySegmentation of a BasicQuery on a Dashboard.
 type BasicQuerySegmentationLabel struct {
 	ID          string  `json:"id"`
 	Descriptor  *string `json:"descriptor,omitempty"`
@@ -287,12 +308,14 @@ type BasicQuerySegmentationLabel struct {
 	Sorting     *string `json:"sorting,omitempty"`
 }
 
+// Thresholds are the threshold for a Panel on a Dashboard.
 type Thresholds struct {
 	Values      []ThresholdValue `json:"values"`
 	Base        ThresholdBase    `json:"base"`
 	UseDefaults *bool            `json:"useDefaults"`
 }
 
+// ThresholdValue is a threshold value for a Thresholds on a Panel in a Dashboard.
 type ThresholdValue struct {
 	Severity    string  `json:"severity"`
 	Value       float64 `json:"value"`
@@ -300,11 +323,13 @@ type ThresholdValue struct {
 	DisplayText string  `json:"displayText"`
 }
 
+// ThresholdBase is a threshold base for a Thresholds on a Panel in a Dashboard.
 type ThresholdBase struct {
 	Severity    string `json:"severity"`
 	DisplayText string `json:"displayText"`
 }
 
+// LegendConfiguration is the configuration for a legend on a Panel in a Dashboard.
 type LegendConfiguration struct {
 	Enabled     bool     `json:"enabled"`
 	Position    string   `json:"position"`
@@ -314,6 +339,7 @@ type LegendConfiguration struct {
 	Height      *float64 `json:"height"`
 }
 
+// AxesConfiguration is the configuration for the axes of a Panel in a Dashboard.
 type AxesConfiguration struct {
 	Bottom struct {
 		Enabled bool `json:"enabled"`
@@ -322,6 +348,7 @@ type AxesConfiguration struct {
 	Right Axis `json:"right"`
 }
 
+// Axis is an axis configuration used in an AxesConfiguration for the axes of a Panel in a Dashboard.
 type Axis struct {
 	Enabled        bool        `json:"enabled"`
 	DisplayName    *string     `json:"displayName"`
@@ -335,11 +362,13 @@ type Axis struct {
 	Scale          string      `json:"scale"`
 }
 
+// EventDisplaySettings are the event display settings for a Dashboard.
 type EventDisplaySettings struct {
 	Enabled     bool                            `json:"enabled"`
 	QueryParams EventDisplaySettingsQueryParams `json:"queryParams"`
 }
 
+// EventDisplaySettingsQueryParams are the query parameters used in an EventDisplaySettings for a Dashboard.
 type EventDisplaySettingsQueryParams struct {
 	Severities    []Severity `json:"severities"`
 	AlertStatuses []Status   `json:"alertStatuses"`

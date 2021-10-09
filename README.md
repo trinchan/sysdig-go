@@ -1,7 +1,7 @@
 # sysdig-go #
 
 [![sysdig-go release](https://img.shields.io/github/v/release/trinchan/sysdig-go?sort=semver)](https://github.com/trinchan/sysdig-go/releases)
-[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/trinchan/sysdig-go/github)
+[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/trinchan/sysdig-go/sysdig)
 [![Test Status](https://github.com/trinchan/sysdig-go/workflows/tests/badge.svg)](https://github.com/trinchan/sysdig-go/actions?query=workflow%3Atests)
 [![Test Coverage](https://codecov.io/gh/trinchan/sysdig-go/branch/main/graph/badge.svg)](https://codecov.io/gh/trinchan/sysdig-go)
 
@@ -20,7 +20,7 @@ will resolve and add the package to the current development module, along with i
 Alternatively the same can be achieved if you use import in a package:
 
 ```go
-import "github.com/trinchan/sysdig-go/github"
+import "github.com/trinchan/sysdig-go/sysdig"
 ```
 
 and run `go get` without parameters.
@@ -28,11 +28,11 @@ and run `go get` without parameters.
 ## Implemented APIs ##
 |       Base              | Get | List | Create | Delete | Update | Other                   | Service                       | Description |
 |:-----------------------:|:---:|:----:|:------:|:------:|:------:|:-----------------------:|:-----------------------------:|-------------|
-| `/team`                 |✓    |✓     |x       |✓       |x       |ListUsers, Infrastructure| `client.Teams`                |Information about teams, users, and usage |
-| `/user/me`              |✓    |x     |x       |x       |x       |x                        | `client.Users`                |Information about the current user |
-| `/token`                |✓    |x     |x       |x       |x       |x                        | `client.Users`                |Retrieves the current user's access token |
-| `/agents/connected`     |✓    |x     |x       |x       |x       |x                        | `client.Users`                |Rerieves the connected Agents for a user
-| `/alerts`               |✓    |✓     |✓       |x       |x       |x                        | `client.Alerts`               |Manage alert configurations |
+| `/team`                 |✓    |✓     |x       |✓       |x       |ListUsers, Infrastructure| `client.Teams`                |[Information about teams, users, and usage](https://docs.sysdig.com/en/docs/administration/administration-settings/user-and-team-administration/manage-teams-and-roles/) |
+| `/user/me`              |✓    |x     |x       |x       |x       |x                        | `client.Users`                |[Information about the current user](https://docs.sysdig.com/en/docs/administration/administration-settings/find-your-customer-id-and-name/) |
+| `/token`                |✓    |x     |x       |x       |x       |x                        | `client.Users`                |[Retrieves the current user's access token](https://docs.sysdig.com/en/docs/administration/administration-settings/find-your-customer-id-and-name/) |
+| `/agents/connected`     |✓    |x     |x       |x       |x       |x                        | `client.Users`                |[Rerieves the connected Agents](https://docs.sysdig.com/en/docs/sysdig-monitor/)
+| `/alerts`               |✓    |✓     |✓       |x       |x       |x                        | `client.Alerts`               |[Manage alert configurations](https://docs.sysdig.com/en/docs/sysdig-monitor/alerts/manage-alerts/) |
 | `/v3/dashboards`        |✓    |✓     |✓       |✓       |✓       |Favorite, Transfer       | `client.Dashboards`           |Manage dashboard configurations |
 | `/v2/events`            |✓    |✓     |✓       |✓       |x       |x                        | `client.Events`               |Manage event notifications |
 | `/notificationChannels` |✓    |✓     |✓       |✓       |x       |x                        | `client.NotificationChannels` |Manage notification channels |
@@ -214,13 +214,7 @@ The Sysdig API (and this client) supports [gzip](https://docs.sysdig.com/en/docs
 sysdig.NewClient(sysdig.WithResponseCompression(true))
 ```
 
-For other options, check the [documentation](https://pkg.go.dev/github.com/trinchan/sysdig-go/github).
-
-## Versioning ##
-
-`sysdig-go` is currently undergoing its initial development and is still incomplete. As new APIs are documented by Sysdig and IBM Cloud, new
-APIs will be added or changed. Since `sysdig-go` is a client library, breaking changes in the upstream API may require updates to the client.
-`sysdig-go` will follow semver as closely as possible to minimize breaking changes.
+For other options, check the [documentation](https://pkg.go.dev/github.com/trinchan/sysdig-go/sysdig).
 
 ## FAQ ##
 
@@ -233,10 +227,20 @@ you can also use the `client.Do()` method to send a custom request.
 
 That's not a question! The client is incomplete as documentation for most of the Sysdig API has not been published. I have had to leave some types as `interface{}` until documentation is released or I receive a sample response. Submit an issue and include the (redacted) client logs with `Debug` mode enabled.
 
+### "The documentation is wrong!" ###
+
+Since there is no official documentation for most of the API, some documentation is bound to be incorrect. Corrections and improvements
+are very welcome -- please file an issue or submit a patch if you find something is inaccurate.
+
 ### "Is this an official client?" ###
 
 Nope. The only official client I know is the [Python SDK](https://github.com/sysdiglabs/sysdig-sdk-python).
 
+## Versioning ##
+
+`sysdig-go` is currently undergoing its initial development and is still incomplete. As new APIs are documented by Sysdig and IBM Cloud, new
+APIs will be added or changed. Since `sysdig-go` is a client library, breaking changes in the upstream API may require updates to the client.
+`sysdig-go` will follow semver as closely as possible to minimize breaking changes.
 
 ## Credits ##
 - Sysdig's [Python SDK](https://github.com/sysdiglabs/sysdig-sdk-python) for API reference.
@@ -246,3 +250,6 @@ Nope. The only official client I know is the [Python SDK](https://github.com/sys
 
 This library is distributed under the MIT license found in the [LICENSE](./LICENSE)
 file.
+
+---
+_"Sysdig" and "IBM Cloud" are registered trademarks of their respective holders. Use of the name does not imply any affiliation with or endorsement by them._
