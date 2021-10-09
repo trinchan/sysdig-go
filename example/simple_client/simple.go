@@ -23,7 +23,7 @@ func main() {
 		panic(err)
 	}
 	client, err := sysdig.NewClient(
-		sysdig.WithAuthenticator(authenticator),
+		authenticator,
 		// sysdig.WithDebug(true),                             // Enable to see requests/responses.
 		// sysdig.WithLogger(log.Default()),                   // Uncomment to set the logger when setting debug to true.
 		// sysdig.WithIBMBaseURL(sysdig.RegionUSSouth, false), // Uncomment to use an IBM Cloud Monitoring instance

@@ -13,7 +13,7 @@ import (
 
 func TestNotificationChannelsService_Create(t *testing.T) {
 	methodName := "Create"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/notificationChannels", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -112,7 +112,7 @@ func TestNotificationChannelsService_Create(t *testing.T) {
 
 func TestNotificationChannelsService_List(t *testing.T) {
 	methodName := "List"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/notificationChannels", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -159,7 +159,7 @@ func TestNotificationChannelsService_List(t *testing.T) {
 
 func TestNotificationChannelsService_Delete(t *testing.T) {
 	methodName := "Delete"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/notificationChannels/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -203,7 +203,7 @@ func TestNotificationChannelsService_Delete(t *testing.T) {
 
 func TestNotificationChannelsService_Get(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/notificationChannels/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)

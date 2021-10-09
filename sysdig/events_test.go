@@ -13,7 +13,7 @@ import (
 
 func TestEventsService_Create(t *testing.T) {
 	methodName := "Create"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v2/events", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -86,7 +86,7 @@ func TestEventsService_Create(t *testing.T) {
 
 func TestEventsService_List(t *testing.T) {
 	methodName := "List"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v2/events", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -146,7 +146,8 @@ func TestEventsService_List(t *testing.T) {
 
 	testBadOptions(t, methodName, func() (err error) {
 		_, _, err = client.Events.List(context.Background(), ListEventOptions{
-			Pivot: "0\n",
+			Filter: "\n",
+			Pivot:  "0\n",
 		})
 		return err
 	})
@@ -155,7 +156,7 @@ func TestEventsService_List(t *testing.T) {
 
 func TestEventsService_Delete(t *testing.T) {
 	methodName := "Delete"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v2/events/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -199,7 +200,7 @@ func TestEventsService_Delete(t *testing.T) {
 
 func TestEventsService_Get(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v2/events/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)

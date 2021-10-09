@@ -24,7 +24,7 @@ func main() {
 		panic(err)
 	}
 	client, err := sysdig.NewClient(
-		sysdig.WithAuthenticator(authenticator),
+		authenticator,
 		// sysdig.WithDebug(true),                             // Enable to see requests/responses.
 		// sysdig.WithLogger(log.Default()),                   // Uncomment to set the logger when setting debug to true.
 		// sysdig.WithIBMBaseURL(sysdig.RegionUSSouth, false), // Uncomment to use an IBM Cloud Monitoring instance
@@ -32,13 +32,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	prom := client.PrometheusClient()
-	values, _, err := prom.Query(ctx, "sysdig_host_cpu_used_percent", time.Now())
+	values, _, err := client.Prometheus.Query(ctx, "sysdig_host_cpu_used_percent", time.Now())
 	if err != nil {
 		panic(err)
 	}
 	log.Printf("Values: %+v", values)
-	alerts, err := prom.Alerts(ctx)
+	alerts, err := client.Prometheus.Alerts(ctx)
 	if err != nil {
 		panic(err)
 	}

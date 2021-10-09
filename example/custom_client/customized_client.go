@@ -44,7 +44,7 @@ func main() {
 		panic(err)
 	}
 	client, err := sysdig.NewClient(
-		sysdig.WithAuthenticator(authenticator),
+		authenticator,
 		sysdig.WithHTTPClient(httpClient),
 		sysdig.WithResponseCompression(true),
 		sysdig.WithUserAgent("sysdig-go; custom client example"),

@@ -11,7 +11,7 @@ import (
 
 func TestTeamsService_Get(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/team/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -55,7 +55,7 @@ func TestTeamsService_Get(t *testing.T) {
 
 func TestTeamsService_List(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/team", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -121,7 +121,7 @@ func TestTeamsService_List(t *testing.T) {
 func TestTeamsService_ListUsers(t *testing.T) {
 	methodName := "Get"
 	teamID := 1
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc(fmt.Sprintf("/api/team/%d/users", teamID), func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -168,7 +168,7 @@ func TestTeamsService_ListUsers(t *testing.T) {
 
 func TestTeamsService_Delete(t *testing.T) {
 	methodName := "Delete"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/team/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -207,7 +207,7 @@ func TestTeamsService_Delete(t *testing.T) {
 
 func TestTeamsService_Infrastructure(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/team/infrastructure", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)

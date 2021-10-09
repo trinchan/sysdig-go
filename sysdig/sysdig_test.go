@@ -25,7 +25,7 @@ const (
 // setup sets up a test HTTP server along with a sysdig.Client that is
 // configured to talk to that test server. Tests should register handlers on
 // mux which provide mock responses for the API method being tested.
-func setup(options ...ClientOption) (client *Client, mux *http.ServeMux, serverURL string, teardown func()) {
+func setup(authenticator authentication.Authenticator, options ...ClientOption) (client *Client, mux *http.ServeMux, serverURL string, teardown func()) {
 	// mux is the HTTP request multiplexer used with the test server.
 	mux = http.NewServeMux()
 
@@ -47,7 +47,7 @@ func setup(options ...ClientOption) (client *Client, mux *http.ServeMux, serverU
 
 	// client is the Sysdig client being tested and is
 	// configured to use test server.
-	client, _ = NewClient(WithDebug(true))
+	client, _ = NewClient(authenticator, WithDebug(true))
 	for _, o := range options {
 		_ = o(client)
 	}
@@ -162,22 +162,6 @@ func TestClientOptions(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "WithNoAuthenticator",
-			option:  WithAuthenticator(nil),
-			wantErr: false,
-		},
-		{
-			name: "WithAuthenticator",
-			option: WithAuthenticator(func() authentication.Authenticator {
-				a, err := accesstoken.Authenticator("foo")
-				if err != nil {
-					t.Fatal(err)
-				}
-				return a
-			}()),
-			wantErr: false,
-		},
-		{
 			name:    "WithResponseCompression",
 			option:  WithResponseCompression(true),
 			wantErr: false,
@@ -190,7 +174,7 @@ func TestClientOptions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := NewClient(test.option)
+			_, err := NewClient(nil, test.option)
 			if (err != nil) != test.wantErr {
 				t.Errorf("got err: %v, want err: %v", err, test.wantErr)
 			}
@@ -199,7 +183,7 @@ func TestClientOptions(t *testing.T) {
 }
 
 func TestClientCopy(t *testing.T) {
-	c, err := NewClient()
+	c, err := NewClient(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +194,7 @@ func TestClientCopy(t *testing.T) {
 }
 
 func TestSetLogger(t *testing.T) {
-	c, err := NewClient()
+	c, err := NewClient(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +210,7 @@ func TestAuthentication(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client, mux, baseURL, teardown := setup(WithAuthenticator(a))
+	client, mux, baseURL, teardown := setup(a)
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		testHeader(t, r, authentication.AuthorizationHeader, authentication.AuthorizationHeaderFor("foo"))
@@ -244,7 +228,7 @@ func TestAuthentication(t *testing.T) {
 }
 
 func TestClientResponses(t *testing.T) {
-	client, mux, baseURL, teardown := setup()
+	client, mux, baseURL, teardown := setup(nil)
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -261,7 +245,7 @@ func TestClientResponses(t *testing.T) {
 }
 
 func TestPrometheusClient(t *testing.T) {
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	defer teardown()
 	mux.HandleFunc("/prometheus/api/v1/", func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte(`{"status":"success","data":{"alerts":[]}}`))
@@ -269,15 +253,14 @@ func TestPrometheusClient(t *testing.T) {
 			t.Errorf("could not write response: %v", err)
 		}
 	})
-	prom := client.PrometheusClient()
-	_, err := prom.Alerts(context.TODO())
+	_, err := client.Prometheus.Alerts(context.TODO())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
 func TestBareDo_Zipped(t *testing.T) {
-	client, mux, baseURL, teardown := setup()
+	client, mux, baseURL, teardown := setup(nil)
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Encoding", "text/plain; gzip; charset=utf8")
@@ -302,7 +285,7 @@ func TestBareDo_AuthenticationError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client, mux, baseURL, teardown := setup(WithAuthenticator(a))
+	client, mux, baseURL, teardown := setup(a)
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
@@ -332,10 +315,10 @@ func TestBareDo_AuthenticationRefreshable(t *testing.T) {
 		t.Fatal(err)
 	}
 	hit := 0
-	client, mux, baseURL, teardown := setup(WithAuthenticator(&refreshableAuthenticationWrapper{
+	client, mux, baseURL, teardown := setup(&refreshableAuthenticationWrapper{
 		Authenticator: a,
 		Refresher:     func() error { hit++; return nil },
-	}))
+	})
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		if hit == 0 {
@@ -358,7 +341,7 @@ func TestBareDo_AuthenticationRefreshable(t *testing.T) {
 }
 
 func TestBareDo_DoError(t *testing.T) {
-	client, mux, baseURL, teardown := setup()
+	client, mux, baseURL, teardown := setup(nil)
 	defer teardown()
 	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)

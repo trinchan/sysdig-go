@@ -11,7 +11,7 @@ import (
 
 func TestAlertsService_List(t *testing.T) {
 	methodName := "List"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/alerts", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -58,7 +58,7 @@ func TestAlertsService_List(t *testing.T) {
 
 func TestAlertsService_Delete(t *testing.T) {
 	methodName := "Delete"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/alerts/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -97,7 +97,7 @@ func TestAlertsService_Delete(t *testing.T) {
 
 func TestAlertsService_Get(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/alerts/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
