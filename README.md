@@ -25,6 +25,19 @@ import "github.com/trinchan/sysdig-go/github"
 
 and run `go get` without parameters.
 
+## Implemented APIs ##
+|       Base              | Get | List | Create | Delete | Update | Other                   | Service                       | Description |
+|:-----------------------:|:---:|:----:|:------:|:------:|:------:|:-----------------------:|:-----------------------------:|-------------|
+| `/team`                 |✓    |✓     |x       |✓       |x       |ListUsers, Infrastructure| `client.Teams`                |Information about teams, users, and usage |
+| `/user/me`              |✓    |x     |x       |x       |x       |x                        | `client.Users`                |Information about the current user |
+| `/token`                |✓    |x     |x       |x       |x       |x                        | `client.Users`                |Retrieves the current user's access token |
+| `/agents/connected`     |✓    |x     |x       |x       |x       |x                        | `client.Users`                |Rerieves the connected Agents for a user
+| `/alerts`               |✓    |✓     |✓       |x       |x       |x                        | `client.Alerts`               |Manage alert configurations |
+| `/v3/dashboards`        |✓    |✓     |✓       |✓       |✓       |Favorite, Transfer       | `client.Dashboards`           |Manage dashboard configurations |
+| `/v2/events`            |✓    |✓     |✓       |✓       |x       |x                        | `client.Events`               |Manage event notifications |
+| `/notificationChannels` |✓    |✓     |✓       |✓       |x       |x                        | `client.NotificationChannels` |Manage notification channels |
+| `/prometheus`           |✓    |✓     |x       |x       |x       |x                        | `client.Prometheus`           |Prometheus HTTP API |
+
 ## Usage ##
 
 ```go
@@ -35,40 +48,76 @@ Construct a new Sysdig client, then use the various services on the client to
 access different parts of the API. For example:
 
 ```go
-authenticator, err := accesstoken.Authenticator(accessToken)
-if err != nil {
-    // handle error
-}
-client, err := sysdig.NewClient(sysdig.WithAuthenticator(authenticator))
-if err != nil {
-    // handle error
-}
+package main
 
-// Get the current user
-me, _, err := client.Users.Me(context.Background())
-if err != nil {
-    // handle error
+import (
+	"context"
+	"fmt"
+
+	"github.com/trinchan/sysdig-go/sysdig"
+	"github.com/trinchan/sysdig-go/sysdig/authentication/accesstoken"
+)
+
+func main() {
+	accessToken := "YOUR_ACCESS_TOKEN"
+	authenticator, err := accesstoken.Authenticator(accessToken)
+	if err != nil {
+		// handle error
+	}
+	client, err := sysdig.NewClient(authenticator)
+	if err != nil {
+		// handle error
+	}
+
+	// Get the current user
+	me, _, err := client.Users.Me(context.Background())
+	if err != nil {
+		// handle error
+	}
+	fmt.Printf("Logged in as %s %s", me.User.FirstName, me.User.LastName)
 }
-fmt.Printf("Logged in as %s %s", me.User.FirstName, me.User.LastName)
 ```
 
 Some API methods have optional parameters that can be passed. For example:
 
 ```go
-opts := sysdig.EventOptions{
-    Name: "Event Name",
-    Description: "Event Description",
-    Severity: sysdig.SeverityInfo,
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/trinchan/sysdig-go/sysdig"
+	"github.com/trinchan/sysdig-go/sysdig/authentication/accesstoken"
+)
+
+func main() {
+	accessToken := "YOUR_ACCESS_TOKEN"
+	authenticator, err := accesstoken.Authenticator(accessToken)
+	if err != nil {
+		// handle error
+	}
+	client, err := sysdig.NewClient(authenticator)
+	if err != nil {
+		// handle error
+	}
+
+	// Create an event
+	opts := sysdig.EventOptions{
+		Name:        "Event Name",
+		Description: "Event Description",
+		Severity:     sysdig.SeverityInfo,
+	}
+	event, _, err := client.Events.Create(context.Background(), opts)
+	if err != nil {
+		// handle error
+	}
+	fmt.Printf("Created event: %s", event.Event.ID)
 }
-event, _, err := client.Events.Create(context.Background(), opts)
-if err != nil {
-    // handle error
-}
-fmt.Printf("Created event: %s", event.Event.ID)
 ```
 
 The services of a client divide the API into logical chunks and correspond roughly to
-the structure of the Sysdig API paths.
+the structure of the Sysdig API.
 
 NOTE: Using the [context](https://pkg.go.dev/context) package, one can easily
 pass cancellation signals and deadlines to various services of the client for
@@ -87,28 +136,49 @@ you. There are two methods of authentication supported.
 
 The `accesstoken` subpackage authenticates each request with the provided [Sysdig API Token](https://docs.sysdig.com/en/docs/administration/administration-settings/user-profile-and-password/retrieve-the-sysdig-api-token).
 ```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/trinchan/sysdig-go/sysdig"
+	"github.com/trinchan/sysdig-go/sysdig/authentication/accesstoken"
+)
+
+
 func main() {
-    authenticator, err := accesstoken.Authenticator(accessToken)
-    if err != nil {
-        // handle error
-    }
-    client, err := sysdig.NewClient(sysdig.WithAuthenticator(authenticator))
+	accessToken := "YOUR_ACCESS_TOKEN"
+	authenticator, err := accesstoken.Authenticator(accessToken)
+	if err != nil {
+		// handle error
+	}
+	client, err := sysdig.NewClient(authenticator)
 }
 ```
 The `ibmiam` subpackage authenticates each request with an [IBM Cloud IAM Token](https://cloud.ibm.com/docs/monitoring?topic=monitoring-api_token). It automatically retrieves and refreshes an IAM Token using an IBM Cloud API Key.
 
 ```go
-authenticator, err := ibmiam.Authenticator(
-    apiKey,
-    ibmiam.WithIBMInstanceID(instanceID),
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/trinchan/sysdig-go/sysdig"
+	"github.com/trinchan/sysdig-go/sysdig/authentication/ibmiam"
 )
-if err != nil {
-    panic(err)
+
+
+func main() {
+	apiKey := "YOUR_IBM_CLOUD_API_KEY"
+	instanceID := "YOUR_IBM_CLOUD_MONITORING_INSTANCE_ID"
+	authenticator, err := ibmiam.Authenticator(apiKey, ibmiam.WithIBMInstanceID(instanceID))
+	if err != nil {
+		// Handle error
+	}
+	client, err := sysdig.NewClient(authenticator, sysdig.WithIBMBaseURL(sysdig.RegionUSSouth, false))
 }
-client, err := sysdig.NewClient(
-    sysdig.WithAuthenticator(authenticator),
-    sysdig.WithIBMBaseURL(sysdig.RegionUSSouth, false),
-)
 ```
 
 See the [example](https://github.com/trinchan/sysdig-go/tree/master/example) directory for more authentication examples.
@@ -129,10 +199,7 @@ See the [Prometheus example](https://github.com/trinchan/sysdig-go/tree/master/e
 Debug mode can be enabled by setting the following client options:
 
 ```go
-sysdig.NewClient(
-    sysdig.WithDebug(true),
-	sysdig.WithLogger(log.Default()), // Or other Logger
-)
+sysdig.NewClient(sysdig.WithDebug(true), sysdig.WithLogger(log.Default())) // Or other Logger
 ```
 
 Setting `Debug` mode will print out the request URLs and response body and headers, along with other debug information.
@@ -144,9 +211,7 @@ This is useful for debugging parse issues and during development.
 The Sysdig API (and this client) supports [gzip](https://docs.sysdig.com/en/docs/developer-tools/sysdig-rest-api-conventions/#encoding) to reduce the size of responses. This can be useful for large queries.
 
 ```go
-sysdig.NewClient(
-    sysdig.WithResponseCompression(true),
-)
+sysdig.NewClient(sysdig.WithResponseCompression(true))
 ```
 
 For other options, check the [documentation](https://pkg.go.dev/github.com/trinchan/sysdig-go/github).
@@ -162,7 +227,7 @@ APIs will be added or changed. Since `sysdig-go` is a client library, breaking c
 ### "Can you add X API?"
 
 Yes! Open an issue with the API path and as much information about it as you can for a better chance of it getting developed. Or better yet, submit a patch!. In the mean time,
- you can also use the `client.Do()` method to send a custom request.
+you can also use the `client.Do()` method to send a custom request.
 
 ### "The response for this API is wrong/broken!" ###
 
