@@ -9,14 +9,21 @@ import (
 // TeamsService is the Service for communicating with the Sysdig Monitor Team related API.
 type TeamsService service
 
+// ProductType defines the Sysdig product types. Valid options are `SDC` for Sysdig Monitor and
+// "SDS" for Sysdig Secure.
 type ProductType string
 
 const (
-	ProductTypeSDC ProductType = "SDC"
-	ProductTypeSDS ProductType = "SDS"
+	// ProductTypeMonitor is the product code for Sysdig Monitor.
+	ProductTypeMonitor ProductType = "SDC"
+	// ProductTypeSecure is the product code for Sysdig Secure.
+	ProductTypeSecure ProductType = "SDS"
+	// ProductTypeAny is an empty product code to allow for searching across all products.
 	ProductTypeAny ProductType = ""
 )
 
+// Team is the structure for a Sysdig Team.
+// See: https://docs.sysdig.com/en/docs/administration/administration-settings/user-and-team-administration/manage-teams-and-roles/
 type Team struct {
 	Version     int       `json:"version"`
 	Description string    `json:"description"`
@@ -25,7 +32,7 @@ type Team struct {
 	DateCreated MilliTime `json:"dateCreated"`
 	// TODO what is this structure?
 	NamespaceFilters    interface{}    `json:"namespaceFilters"`
-	CustomerId          int            `json:"customerId"`
+	CustomerID          int            `json:"customerId"`
 	Show                string         `json:"show"`
 	Products            []string       `json:"products"`
 	Theme               string         `json:"theme"`
@@ -46,10 +53,12 @@ type Team struct {
 	Default    bool        `json:"default"`
 }
 
+// TeamEntryPoint is the entrypoint for this Team.
 type TeamEntryPoint struct {
 	Module string `json:"module"`
 }
 
+// TeamResponse is a container for a Team in the TeamsService.Get API.
 type TeamResponse struct {
 	Team Team `json:"team"`
 }
@@ -66,6 +75,7 @@ func (s *TeamsService) Get(ctx context.Context, teamID int) (*TeamResponse, *htt
 	return c, resp, err
 }
 
+// ListTeamsResponse is a container of Teams for the TeamsService.List API.
 type ListTeamsResponse struct {
 	Teams []Team `json:"teams"`
 }
@@ -89,6 +99,7 @@ func (s *TeamsService) List(ctx context.Context, product ProductType) (*ListTeam
 	return c, resp, err
 }
 
+// ListUsersResponse is a container for User returned by the TeamsService.ListUsers API.
 type ListUsersResponse struct {
 	Offset int    `json:"offset"`
 	Total  int    `json:"total"`
@@ -107,6 +118,7 @@ func (s *TeamsService) ListUsers(ctx context.Context, teamID int) (*ListUsersRes
 	return c, resp, err
 }
 
+// Delete deletes a Team.
 func (s *TeamsService) Delete(ctx context.Context, teamID int) (*http.Response, error) {
 	u := fmt.Sprintf("api/team/%d", teamID)
 	req, err := s.client.NewRequest(http.MethodDelete, u, nil)
@@ -117,10 +129,7 @@ func (s *TeamsService) Delete(ctx context.Context, teamID int) (*http.Response, 
 	return resp, err
 }
 
-type InfrastructureResponse struct {
-	Infrastructure Infrastructure `json:"infrastructure"`
-}
-
+// Infrastructure is metrics about the infrastructure monitored by Sysdig for this team.
 type Infrastructure struct {
 	HostCount        int `json:"hostCount"`
 	ContainerCount   int `json:"containerCount"`
@@ -134,6 +143,7 @@ type Infrastructure struct {
 	AgentMetricOverview InfrastructureAgentMetricOverviews `json:"agentMetricOverview"`
 }
 
+// InfrastructureMetricCount is overview of infrastructure metrics in an TeamsService.Infrastructure response.
 type InfrastructureMetricCount struct {
 	Total    int `json:"total"`
 	JMX      int `json:"jmx"`
@@ -141,18 +151,26 @@ type InfrastructureMetricCount struct {
 	AppCheck int `json:"appCheck"`
 }
 
+// InfrastructureAgentMetricOverviews is an overview for Sysdig agents in an TeamsService.Infrastructure response.
 type InfrastructureAgentMetricOverviews struct {
 	ExceedingLimitCount int     `json:"exceedingLimitCount"`
 	TotalAgents         int     `json:"totalAgents"`
 	ExceedingLimitPct   float64 `json:"exceedingLimitPct"`
 }
 
+// OnPremOverview is information about the on-premises installation of Sysdig in an TeamsService.Infrastructure response.
 type OnPremOverview struct {
 	LatestVersion   string `json:"latestVersion"`
 	CustomerVersion string `json:"customerVersion"`
 	ShowPlanInfo    bool   `json:"showPlanInfo"`
 }
 
+// InfrastructureResponse is an Infrastructure container for the TeamsService.Infrastructure API.
+type InfrastructureResponse struct {
+	Infrastructure Infrastructure `json:"infrastructure"`
+}
+
+// Infrastructure returns metrics about the infrastructure monitored by Sysdig for this team.
 func (s *TeamsService) Infrastructure(ctx context.Context) (*InfrastructureResponse, *http.Response, error) {
 	u := "api/team/infrastructure"
 	req, err := s.client.NewRequest(http.MethodGet, u, nil)

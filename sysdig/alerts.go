@@ -9,13 +9,17 @@ import (
 // AlertService is the Service for communicating with the Sysdig Monitor Alert related API.
 type AlertService service
 
+// AlertType defines the types of Alerts.
 type AlertType string
 
 const (
 	// AlertTypeEvent means the Alert is from an Event.
 	AlertTypeEvent AlertType = "EVENT"
+	// TODO: There must be others.
 )
 
+// Alert defines a Sysdig Alert.
+// See: https://docs.sysdig.com/en/docs/sysdig-monitor/alerts/manage-alerts/
 type Alert struct {
 	ID                 int                     `json:"id,omitempty"`
 	Version            int                     `json:"version,omitempty"`
@@ -44,20 +48,23 @@ type Alert struct {
 	CustomerID     int           `json:"customerId"`
 }
 
+// AlertCustomNotification is the structure for a Custom Notification on an Alert.
 type AlertCustomNotification struct {
 	TitleTemplate  string `json:"titleTemplate"`
 	UseNewTemplate bool   `json:"useNewTemplate"`
 }
 
+// AlertCriteria defines the Criteria for an Alert.
+// TODO: What are the format of the unknown fields?
 type AlertCriteria struct {
-	Text string `json:"text"`
-	// TODO what are the format of these?
+	Text     string      `json:"text"`
 	Source   interface{} `json:"source"`
 	Severity interface{} `json:"severity"`
 	Query    interface{} `json:"query"`
 	Scope    interface{} `json:"scope"`
 }
 
+// AlertResponse is a container for an Alert returned by the Sysdig API.
 type AlertResponse struct {
 	Alert Alert `json:"alert"`
 }
