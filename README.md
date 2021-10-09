@@ -215,7 +215,7 @@ The Sysdig API (and this client) supports [gzip](https://docs.sysdig.com/en/docs
 sysdig.NewClient(sysdig.WithResponseCompression(true))
 ```
 
-For other options, check the [documentation](https://pkg.go.dev/github.com/trinchan/sysdig-go/sysdig).
+For other options, check the [documentation](https://pkg.go.dev/github.com/trinchan/sysdig-go/sysdig#ClientOption).
 
 ## FAQ ##
 
