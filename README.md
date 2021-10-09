@@ -3,7 +3,7 @@
 [![sysdig-go release](https://img.shields.io/github/v/release/trinchan/sysdig-go?sort=semver)](https://github.com/trinchan/sysdig-go/releases)
 [![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/trinchan/sysdig-go/sysdig)
 [![Test Status](https://github.com/trinchan/sysdig-go/workflows/tests/badge.svg)](https://github.com/trinchan/sysdig-go/actions?query=workflow%3Atests)
-[![Test Coverage](https://codecov.io/gh/trinchan/sysdig-go/branch/main/graph/badge.svg)](https://codecov.io/gh/trinchan/sysdig-go)
+[![Test Coverage](https://codecov.io/gh/trinchan/sysdig-go/branch/master/graph/badge.svg)](https://codecov.io/gh/trinchan/sysdig-go)
 
 `sysdig-go` is a Go client library for accessing the [Sysdig](https://docs.sysdig.com/en/docs/developer-tools) and [IBM Cloud Monitoring](https://cloud.ibm.com/apidocs/monitor) APIs.
 
