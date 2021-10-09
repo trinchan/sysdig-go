@@ -12,7 +12,7 @@ import (
 
 func TestDashboardsService_List(t *testing.T) {
 	methodName := "List"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v3/dashboards", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -59,7 +59,7 @@ func TestDashboardsService_List(t *testing.T) {
 
 func TestDashboardsService_Delete(t *testing.T) {
 	methodName := "Delete"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v3/dashboards/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -99,7 +99,7 @@ func TestDashboardsService_Delete(t *testing.T) {
 
 func TestDashboardsService_Get(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v3/dashboards/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -162,7 +162,7 @@ func TestNewDashboard(t *testing.T) {
 
 func TestDashboardService_Create(t *testing.T) {
 	methodName := "Create"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v3/dashboards", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -236,7 +236,7 @@ func TestDashboardService_Create(t *testing.T) {
 
 func TestDashboardsService_Update(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v3/dashboards/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -280,7 +280,7 @@ func TestDashboardsService_Update(t *testing.T) {
 
 func TestDashboardsService_Favorite(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v3/dashboards/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -337,7 +337,7 @@ func TestDashboardsService_Favorite(t *testing.T) {
 
 func TestDashboardsService_Transfer(t *testing.T) {
 	methodName := "Get"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/v3/dashboards/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)

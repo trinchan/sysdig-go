@@ -11,7 +11,7 @@ import (
 
 func TestUsersService_Me(t *testing.T) {
 	methodName := "Me"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/user/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -53,7 +53,7 @@ func TestUsersService_Me(t *testing.T) {
 
 func TestUsersService_Token(t *testing.T) {
 	methodName := "Token"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/token", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
@@ -95,7 +95,7 @@ func TestUsersService_Token(t *testing.T) {
 
 func TestUsersService_ConnectedAgents(t *testing.T) {
 	methodName := "ConnectedAgents"
-	client, mux, _, teardown := setup()
+	client, mux, _, teardown := setup(nil)
 	var h http.HandlerFunc
 	mux.HandleFunc("/api/agents/", func(w http.ResponseWriter, r *http.Request) {
 		h(w, r)

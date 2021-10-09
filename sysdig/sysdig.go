@@ -90,19 +90,29 @@ type Client struct {
 	Alerts               *AlertService
 	Dashboards           *DashboardService
 	Teams                *TeamsService
+
+	// PrometheusClient implements a Prometheus HTTP API Client using the Sysdig Client as a base.
+	// Delegates to the implementation in Prometheus' client library.
+	// Note: Sysdig provides a limited Prometheus HTTP API, some calls will fail.
+	// Known working:
+	// - Query
+	// - QueryRange
+	// - Alerts.
+	Prometheus v1.API
 }
 
 // ClientOption defines the options for a Sysdig Client.
 type ClientOption func(*Client) error
 
 // NewClient creates a new Sysdig Client and applies all provided ClientOption.
-func NewClient(options ...ClientOption) (*Client, error) {
+func NewClient(authenticator authentication.Authenticator, options ...ClientOption) (*Client, error) {
 	baseURL, _ := url.Parse(defaultBaseURL)
 	c := &Client{
-		BaseURL:    baseURL,
-		UserAgent:  userAgent,
-		httpClient: http.DefaultClient,
-		logger:     noopLog,
+		BaseURL:       baseURL,
+		authenticator: authenticator,
+		UserAgent:     userAgent,
+		httpClient:    http.DefaultClient,
+		logger:        noopLog,
 	}
 	for _, o := range options {
 		if err := o(c); err != nil {
@@ -116,6 +126,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 	c.Alerts = (*AlertService)(&c.common)
 	c.Dashboards = (*DashboardService)(&c.common)
 	c.Teams = (*TeamsService)(&c.common)
+	c.Prometheus = v1.NewAPI(&prometheusClient{client: c})
 	return c, nil
 }
 
@@ -156,14 +167,6 @@ func WithIBMBaseURL(ibmRegion Region, privateEndpoint bool) ClientOption {
 func WithUserAgent(userAgent string) ClientOption {
 	return func(c *Client) error {
 		c.UserAgent = userAgent
-		return nil
-	}
-}
-
-// WithAuthenticator sets the authentication.Authenticator for the Sysdig Client.
-func WithAuthenticator(a authentication.Authenticator) ClientOption {
-	return func(c *Client) error {
-		c.authenticator = a
 		return nil
 	}
 }
@@ -368,16 +371,6 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 		}
 	}
 	return resp, err
-}
-
-// PrometheusClient creates a Prometheus Client using the Sysdig Client as a base.
-// Note: only a subset of the PrometheusClient APIs are implemented by Sysdig.
-// Known working:
-// - Query
-// - QueryRange
-// - Alerts.
-func (c *Client) PrometheusClient() v1.API {
-	return v1.NewAPI(&prometheusClient{client: c})
 }
 
 type prometheusClient struct {

@@ -223,11 +223,11 @@ func (s *EventsService) List(ctx context.Context, options ListEventOptions) (*Li
 		IncludePivot: true,
 	}
 
-	u, err := addOptions(u, o)
+	uWithOpt, err := addOptions(u, o)
 	if err != nil {
 		return nil, nil, err
 	}
-	req, err := s.client.NewRequest(http.MethodGet, u, nil)
+	req, err := s.client.NewRequest(http.MethodGet, uWithOpt, nil)
 	if err != nil {
 		return nil, nil, err
 	}
